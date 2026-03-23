@@ -1,0 +1,10 @@
+transformers
+torch
+sentence-transformers
+qdrant-client
+langchain
+langchain-community
+pypdf
+fastapi
+uvicorn
+python-dotenv
