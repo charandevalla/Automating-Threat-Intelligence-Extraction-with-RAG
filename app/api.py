@@ -15,14 +15,18 @@ class QueryRequest(BaseModel):
     top_k: int = 5
 
 
+class IngestRequest(BaseModel):
+    pdf_path: str = "data/sample.pdf"
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
 @app.post("/ingest")
-def ingest():
-    pdf_path = "data/sample.pdf"
+def ingest(req: IngestRequest):
+    pdf_path = req.pdf_path
 
     try:
         chunks = ingest_pdf(pdf_path)
@@ -43,11 +47,12 @@ def ingest():
 
         return {
             "message": "Ingestion complete.",
+            "pdf_path": pdf_path,
             "chunks_indexed": len(chunks)
         }
 
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="PDF file not found at data/sample.pdf")
+        raise HTTPException(status_code=404, detail=f"PDF file not found at {pdf_path}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
