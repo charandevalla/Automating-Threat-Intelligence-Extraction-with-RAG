@@ -65,12 +65,12 @@ def ingest(req: IngestRequest):
             "pdf_path": pdf_path,
             "chunks_indexed": len(chunks),
             "metadata_summary": {
-                "cves": len(total_cves),
-                "ips": len(total_ips),
-                "domains": len(total_domains),
-                "hashes": len(total_hashes),
-                "mitre_techniques": len(total_mitre),
-                "threat_actors": len(total_actors)
+                "cves": sorted(total_cves),
+                "ips": sorted(total_ips),
+                "domains": sorted(total_domains),
+                "hashes": sorted(total_hashes),
+                "mitre_techniques": sorted(total_mitre),
+                "threat_actors": sorted(total_actors)
             }
         }
 
@@ -84,13 +84,28 @@ def ingest(req: IngestRequest):
 def ask(req: QueryRequest):
     try:
         rag = ThreatIntelRAG()
-        answer, context_chunks, sources = rag.ask(req.query, req.top_k)
+        answer, context_chunks, sources, metadata_summary = rag.ask(req.query, req.top_k)
 
         return {
             "query": req.query,
             "answer": answer,
             "context_chunks": context_chunks,
-            "sources": sources
+            "sources": sources,
+            "metadata_summary": metadata_summary
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/iocs")
+def get_iocs(query: str = "List the extracted IOCs", top_k: int = 10):
+    try:
+        rag = ThreatIntelRAG()
+        _, _, _, metadata_summary = rag.ask(query, top_k)
+
+        return {
+            "message": "IOC summary from retrieved chunks",
+            "metadata_summary": metadata_summary
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
