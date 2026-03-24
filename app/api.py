@@ -61,12 +61,13 @@ def ingest(req: IngestRequest):
 def ask(req: QueryRequest):
     try:
         rag = ThreatIntelRAG()
-        answer, context_chunks = rag.ask(req.query, req.top_k)
+        answer, context_chunks, sources = rag.ask(req.query, req.top_k)
 
         return {
             "query": req.query,
             "answer": answer,
-            "context_chunks": context_chunks
+            "context_chunks": context_chunks,
+            "sources": sources
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
