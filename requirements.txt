@@ -4,6 +4,7 @@ sentence-transformers
 qdrant-client
 langchain
 langchain-community
+langchain-text-splitters
 pypdf
 fastapi
 uvicorn

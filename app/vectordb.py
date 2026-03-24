@@ -9,22 +9,29 @@ class VectorDB:
 
     def create_collection(self, vector_size):
         existing = [c.name for c in self.client.get_collections().collections]
-        if self.collection_name not in existing:
-            self.client.create_collection(
-                collection_name=self.collection_name,
-                vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
-            )
+
+        if self.collection_name in existing:
+            self.client.delete_collection(collection_name=self.collection_name)
+
+        self.client.create_collection(
+            collection_name=self.collection_name,
+            vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)
+        )
 
     def upsert(self, ids, vectors, payloads):
         points = [
             PointStruct(id=i, vector=v, payload=p)
             for i, v, p in zip(ids, vectors, payloads)
         ]
-        self.client.upsert(collection_name=self.collection_name, points=points)
+        self.client.upsert(
+            collection_name=self.collection_name,
+            points=points
+        )
 
     def search(self, query_vector, limit=5):
-        return self.client.search(
+        results = self.client.query_points(
             collection_name=self.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=limit
         )
+        return results.points
