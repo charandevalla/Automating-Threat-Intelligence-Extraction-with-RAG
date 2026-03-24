@@ -1,6 +1,8 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 
+from app.extractors import extract_iocs
+
 
 def ingest_pdf(pdf_path):
     loader = PyPDFLoader(pdf_path)
@@ -12,10 +14,20 @@ def ingest_pdf(pdf_path):
     )
     chunks = splitter.split_documents(docs)
 
-    return [
-        {
-            "text": chunk.page_content,
-            "metadata": chunk.metadata
-        }
-        for chunk in chunks
-    ]
+    processed_chunks = []
+
+    for chunk in chunks:
+        text = chunk.page_content
+        metadata = chunk.metadata or {}
+
+        iocs = extract_iocs(text)
+
+        processed_chunks.append({
+            "text": text,
+            "metadata": {
+                **metadata,
+                **iocs
+            }
+        })
+
+    return processed_chunks

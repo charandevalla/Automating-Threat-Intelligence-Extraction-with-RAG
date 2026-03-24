@@ -45,10 +45,33 @@ def ingest(req: IngestRequest):
         ids = list(range(1, len(vectors) + 1))
         vectordb.upsert(ids, vectors, payloads)
 
+        total_cves = set()
+        total_ips = set()
+        total_domains = set()
+        total_hashes = set()
+        total_mitre = set()
+        total_actors = set()
+
+        for chunk in payloads:
+            total_cves.update(chunk.get("cves", []))
+            total_ips.update(chunk.get("ips", []))
+            total_domains.update(chunk.get("domains", []))
+            total_hashes.update(chunk.get("hashes", []))
+            total_mitre.update(chunk.get("mitre_techniques", []))
+            total_actors.update(chunk.get("threat_actors", []))
+
         return {
             "message": "Ingestion complete.",
             "pdf_path": pdf_path,
-            "chunks_indexed": len(chunks)
+            "chunks_indexed": len(chunks),
+            "metadata_summary": {
+                "cves": len(total_cves),
+                "ips": len(total_ips),
+                "domains": len(total_domains),
+                "hashes": len(total_hashes),
+                "mitre_techniques": len(total_mitre),
+                "threat_actors": len(total_actors)
+            }
         }
 
     except FileNotFoundError:
